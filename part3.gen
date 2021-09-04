@@ -1,0 +1,5 @@
+(ROOT is it true that (S (S_PRESENT (NP (Nnp chandler)) (VP_PRES (Vbz is) (NP (Det a) (Noun pizza))))) ?)
+(ROOT (S (S_PRESENT (NP (Det a) (Noun floor)) (VP_PRES (Vbz is) (NP (Det the) (Noun president))))) .)
+(ROOT (S (S_PRESENT (NP (Det the) (Noun doctor)) (VP_PRES (Vbz is) (NP (Nnp phoebe))))) .)
+(ROOT (S (S_PRESENT (NP (Det a) (Noun president)) (VP_PRES (Vbz is) (ADJP (Adj cynical))))) !)
+(ROOT is it true that (S (S_PAST (NP (Det a) (Noun pizza)) (VP_PAST (Vpast_intrans smiled)))) ?)

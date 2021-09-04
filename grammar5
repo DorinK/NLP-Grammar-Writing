@@ -1,0 +1,471 @@
+# b d
+
+# Symbols in the grammar are case-sensitive.
+#
+# This grammar uses a convention that
+#    - terminals are lowercase          (president)
+#    - preterminals are capitalized     (Noun)
+#    - other nonterminals are all-caps  (NP)
+#
+# This convention just makes grammars more readable to humans.  Thus:
+#
+#    - When *you* are writing grammars, you should
+#      follow this convention unless you have a good reason not to.
+#
+#    - But the  *program* should still work with grammars that don't
+#      follow this convention.  So how can the program reliably tell
+#      the difference between terminal and nonterminal symbols?  If
+#      there is at least one rule for rewriting a symbol, then that
+#      symbol is a nonterminal and should be rewritten.
+#######################
+
+# Rules for creating full sentences.
+
+1	ROOT	S .
+1	ROOT	S !
+1	ROOT	is it true that S ?     # mixing terminals and nonterminals is ok.
+
+# The basic grammar rules.  Here's what the abbreviations stand for:
+#    S  = sentence
+#    NP = noun phrase
+#    VP = verb phrase
+#    PP = prepositional phrase
+#    Det = determiner (sometimes called "article")
+#    Prep = preposition
+#    Adj = adjective
+#    Nnp = proper noun
+#    Conj = conjunction
+#    Adv = adverb
+#    Prp = personal pronoun
+#    ADVP = adverbial phrase
+#    Vbz = verb 3rd person singular present form
+#    SubC = subordinating conjunction
+
+#################################
+#  grammar2 and grammar5 rules  #
+#################################
+
+1   S   S_PAST_SIMP         # generate sentences in Past Simple tense
+1   S   S_PRES_PROG         # generate sentences in Present Progressive tense
+1   S   S_PRES_SIMP         # generate sentences in Present Simple tense
+
+0.1 S   S Conj S            # 'and' as conjunction between sentences
+
+1   NP  NP_SG
+1   NP  NP_PLU
+
+# noun phrase - singular
+5   NP_SG   Nnp
+5   NP_SG   Det Noun
+0.3 NP_SG   Det Noun PP          # changed from NP -> NP PP to NP -> Det Noun PP to prevent "Sally with the pickle"
+1   NP_SG   Det ADJP Noun
+0.2 NP_SG   Det ADJP Noun PP
+1   Noun    Adj Noun
+
+# noun phrase - plural
+1   NP_PLU  Det_plu Noun_plu
+0.1 NP_PLU  Det_plu Noun_plu PP
+1   NP_PLU  NP Conj NP
+1   NP_PLU  Det_plu ADJP Noun_plu
+0.2 NP_PLU  Det_plu ADJP Noun_plu PP
+
+# preposition phrase
+0.2 PP  Prep NP_SG
+
+# adverb phrase (ADVP) and adjectival phrase (ADJP)
+1   ADVP    Adv
+1   ADVP    Adv ADVP        # adverbial phrase
+1   ADJP    Adj
+1   ADJP    ADVP Adj        # adjectival phrase
+
+# ------------------------- Past Simple - Part 2 ------------------------- #
+
+1   S_PAST_SIMP NP_SG VP_PAST_SIMP                              #NEW
+1   S_PAST_SIMP NP_PLU VP_PAST_SIMP                             #NEW
+0.3 S_PAST_SIMP Prp Vpast_np_that NP SBAR_PAST                # For sent e
+
+1   SBAR_PAST   SubC S_PAST_SIMP                            # For sent d
+1   SBAR_PAST   SubC NP_SG VP_PAST_SG                       # For sent d    #NEW
+1   SBAR_PAST   SubC NP_PLU VP_PAST_PLU                     # For sent d    #NEW
+
+1	VP_PAST_SIMP    Vpast_trans NP
+1   VP_PAST_SIMP    Vpast_intrans                             # For sent c
+5   VP_PAST_SIMP    Vpast_prep PP                             # For sent g
+0.3 VP_PAST_SIMP    Vpast_that SBAR_PAST                      # For sent d
+
+1   VP_PAST_SG  Vbz NP_SG                                 # For sent j
+1   VP_PAST_PLU Vbp NP_PLU                                # For sent j    #NEW
+
+0.3 Vpast_trans Vpast_trans Conj Vpast_trans              # For sent b
+
+# --------------------- Present Progressive - Part 2 --------------------- #
+
+1   S_PRES_PROG NP_SG VP_PROG_SG                            #NEW
+1   S_PRES_PROG NP_PLU VP_PROG_PLU                          #NEW
+
+1   VP_PROG_SG  Vbz PROG                                    #NEW
+1   VP_PROG_PLU Vbp PROG                                    #NEW
+
+1   PROG    ADJP                                            # For sent h
+1   PROG    ADJP Conj ADJP                                  # For sent h
+
+1   PROG    Vpresent NP                                     # For sent i
+
+1   VP_PROG_SG  Vbz NP_SG                                   # For sent j
+1   VP_PROG_PLU Vbp NP_PLU                                  # For sent j    #NEW
+
+# ----------------------- Present Simple - Part 5 ----------------------- #
+
+1   S_PRES_SIMP NP_SG VP_PRES_SIMP_SG
+1	S_PRES_SIMP NP_PLU VP_PRES_SIMP_PLU
+0.3	S_PRES_SIMP Prp Vpres_np_that_sg NP SBAR_PRES_SIMP
+
+1   SBAR_PRES_SIMP  SubC S_PRES_SIMP
+1   SBAR_PRES_SIMP  SBAR_PAST
+
+1   VP_PRES_SIMP_SG Vpres_trans_sg NP
+1   VP_PRES_SIMP_SG Vpres_intrans_sg
+0.2 VP_PRES_SIMP_SG Vpres_that_sg SBAR_PRES_SIMP
+0.1 VP_PRES_SIMP_SG Vpres_prep_sg PP
+
+1   VP_PRES_SIMP_PLU    Vbase_trans NP
+1   VP_PRES_SIMP_PLU    Vbase_intrans
+0.2 VP_PRES_SIMP_PLU    Vbase_that SBAR_PRES_SIMP
+0.2 VP_PRES_SIMP_PLU    Vbase_prep PP
+
+0.3 Vpres_trans_sg  Vpres_trans_sg Conj Vpres_trans_sg
+0.3 Vbase_trans Vbase_trans Conj Vbase_trans
+
+
+########################################
+#  grammar4 rules and grammar5 rules   #
+########################################
+
+# --------------------- Yes-No Questions Rules --------------------- #
+
+1   ROOT    YNQ ?       # generating yes/no questions
+
+1   YNQ YNQ_DID_WILL        # generating questions in Past Simple and Future Simple tenses
+1   YNQ YNQ_IS_ARE          # generating questions in Present Progressive tense
+1   YNQ YNQ_DO_DOES         # generating questions in Present Simple tense
+
+1   YNQ_DID_WILL    Aux NP VPQ
+1   YNQ_DID_WILL    Aux Prp Vbase_np_that NP SBAR_PAST    # "did it perplex the president that ... ?"
+
+1   VPQ Vbase_trans NP        # "did Sally ___ (and ___) the sandwich ?"  # "where did Sally ___ (and ___) the sandwich ?"
+1   VPQ Vbase_prep PP         # "did Sally ___ on the desk ?"             # "where did Sally ___  on the desk ?"
+1   VPQ Vbase_that SBAR_PAST  # "did Sally ___ that ... ?"                # "where did Sally ___ that ... ?"
+1   VPQ Vbase_intrans         # "did Sally ___ ?"                         # "where did Sally ___ ?"
+
+1   Is_Are  Vbz NP_SG
+1   Is_Are  Vbp NP_PLU
+
+1   YNQ_IS_ARE  Vbz NP_SG NP_SG             # "is Sally a sandwich ?"
+1   YNQ_IS_ARE  Vbp NP_PLU NP_PLU           # "is Sally a sandwich ?"
+1   YNQ_IS_ARE  Is_Are ADJP                 # "is Sally (very) funny ?"
+1   YNQ_IS_ARE  Is_Are ADJP Conj ADJP       # "is Sally (very) funny and (very) cynical ?"
+1   YNQ_IS_ARE  Is_Are Vpresent NP          # "is Sally eating the sandwich ?"
+
+1   Do_Does do NP_PLU
+1   Do_Does does NP_SG
+
+1   YNQ_DO_DOES Do_Does VPSQ
+1   YNQ_DO_DOES does Prp Vbase_np_that NP SBAR_PRES_SIMP    # "did it perplex the president that ... ?"
+
+1   VPSQ    Vbase_trans NP              # "does Sally ___ (and ___) the sandwich ?"  # "where did Sally ___ (and ___) the sandwich ?"
+1   VPSQ    Vbase_prep PP               # "does Sally ___ on the desk ?"             # "where did Sally ___  on the desk ?"
+1   VPSQ    Vbase_that SBAR_PRES_SIMP   # "does Sally ___ that ... ?"                # "where did Sally ___ that ... ?"
+1   VPSQ    Vbase_intrans               # "does Sally ___ ?"                         # "where did Sally ___ ?"
+
+
+# -------------------- WH-word Questions Rules -------------------- #
+
+1   ROOT    WHQ ?       # generating WH questions
+
+1   WHQ WHQ_WHERE       # generating 'where' questions
+1   WHQ WHQ_WHAT        # generating 'what' questions
+1   WHQ WHQ_WHO         # generating 'who' questions
+1   WHQ WHQ_WHO_AUX     # generating 'who' questions with auxiliary verb
+
+
+# 'Where' questions
+1   WHQ_WHERE   where YNQ_DID_WILL          # with the auxiliary verbs did/will
+1   WHQ_WHERE   where YNQ_DO_DOES           # with the auxiliary verbs do/does
+1   WHQ_WHERE   where Is_Are                # "where is joey ?"
+1   WHQ_WHERE   where Is_Are Vpresent NP    # "where is joey eating the pizza ?"
+
+
+# 'What' questions
+1   WHQ_WHAT    what Aux NP VPQ1        # with the auxiliary verbs did/will
+1   WHQ_WHAT    what Do_Does VPQ1       # with the auxiliary verbs do/does
+1   WHQ_WHAT    what Do_Does VPQ3       # with the auxiliary verbs do/does
+1   WHQ_WHAT    what Is_Are Vpresent    # "What is joey eating ?"
+1   WHQ_WHAT    what Is_Are             # "what is a sandwich ?"
+
+1   VPQ1    Vbase_trans NP with                 # "what did Sally ___ the sandwich with ?"
+1   VPQ1    Vbase_trans   # was V11             # "what did Sally ___ ?"
+0.1 VPQ1    Vbase_that                          # "what did the president think/understand ?"
+1   VPQ1    Vbase_that SubC NP Vpast_trans      # "what did the president ___ that Sally ___ ?"
+1   VPQ1    Vbase_prep Prep                     # "what did the president ___ on ?"
+
+1   VPQ3    Vbase_that SubC NP_SG Vpres_trans_sg        # "what does chandler think that joey eats ?"
+1   VPQ3    Vbase_that SubC NP_PLU Vbase_trans          # "what do the teachers think that the students understand ?"
+1   VPQ3    Vbase_that SubC NP_SG Vbz Vpresent          # "what do the students think that monica is eating ?"
+1   VPQ3    Vbase_that SubC NP_PLU Vbp Vpresent         # "what does monica think that the students are eating ?"
+
+
+# 'Who' questions
+1   WHQ_WHO_AUX who Aux NP Vbase_prep with      # "who did the president ___ with ?"
+1   WHQ_WHO who Aux NP Vbase_trans              # "who did the president ___ ?"
+1   WHQ_WHO who VPQ2
+1   WHQ_WHO_AUX who Do_Does Vbase_prep with     # "who does the president ___ with ?"
+1   WHQ_WHO who Do_Does Vbase_trans             # "who does the president ___ ?"
+1   WHQ_WHO who VPQ4
+1   WHQ_WHO who Vbz Vpresent NP                 # "who is eating the sandwich ?"
+1   WHQ_WHO who Vbz ADJP                        # "who is (very) funny ?"
+1   WHQ_WHO who Vbz ADJP Conj ADJP              # "who is (very) cynical and (very) funny ?"
+1   WHQ_WHO who Is_Are                          # "who is the president ?"
+
+1   VPQ2    Vpast_trans NP              # "who ___ (and ___) the sandwich ?"
+1   VPQ2    Vpast_prep PP               # "who ___ on the desk ?"
+1   VPQ2    Vpast_that SBAR_PAST        # "who thought/understood that ... ?"
+1   VPQ2    Vpast_intrans               # "who ___ ?"
+
+1   VPQ4    Vpres_trans_sg NP               # "who ___ (and ___) the sandwich ?"
+1   VPQ4    Vpres_prep_sg PP                # "who ___ on the desk ?"
+1   VPQ4    Vpres_that_sg SBAR_PRES_SIMP    # "who think/understands that ... ?"
+1   VPQ4    Vpres_intrans_sg                # "who ___ ?"
+
+
+###############################
+#  additional grammar5 rules  #
+###############################
+
+# ---- Answering Yes-No and WH questions in an interview format ---- #
+
+1   ROOT    INTV .      # generating QA
+1   ROOT    INTV !      # generating QA
+
+7   INTV   Q: YNQ ? Ans: YN
+
+1   INTV    Q: WHQ_WHERE ? Ans: in Det Noun_places
+1   INTV    Q: WHQ_WHERE ? Ans: in Nnp_places
+1   INTV    Q: WHQ_WHERE ? Ans: Prep Det Noun
+
+1   INTV    Q: WHQ_WHAT ? Ans: Det Noun
+1   INTV    Q: what Aux NP Vbase_that ? Ans: SBAR_PAST
+1   INTV    Q: what Do_Does Vbase_that ? Ans: SBAR_PRES_SIMP
+
+1   INTV    Q: WHQ_WHO_AUX ? Ans: with NP
+1   INTV    Q: WHQ_WHO ? Ans: NP
+
+2   YN  yes
+1   YN  yes, absolutely
+1   YN  yes, of course
+2   YN  no
+1   YN  definitely not
+1   YN  of course not
+
+# ------------------------- Reporting news ------------------------- #
+
+1   ROOT    REP_NEWS .
+
+9   REP_NEWS    We've got some important news for you: S_PAST_SIMP
+9   REP_NEWS    We have some breaking news reaching us here at ' Noun ' News, we're receiving reports that S_PAST_SIMP
+9   REP_NEWS    We are very glad to announce that S_PAST_SIMP , join us live on ' Noun ' channel
+9   REP_NEWS    We are very sorry to announce that S_PAST_SIMP , stay with us for more information
+9   REP_NEWS    Stay with us, we'll be right back after this commercial of NP Vpresent NP
+9   REP_NEWS    This is NP_SG , reporting from PLACES that S_PAST_SIMP
+9   REP_NEWS    Our sources tell us that S_PAST_SIMP , stay with us for more information
+9   REP_NEWS    And now , we are about to tell you on NP_SG Vpresent NP , stay with us for more information
+
+1   PLACES  Det Noun
+1   PLACES  Det Noun_places
+1   PLACES  Nnp_places
+
+
+#########################
+#  Original Vocabulary  #
+#########################
+
+# Vocabulary.  Your program can see that "ate" is a terminal
+# symbol because there exists no rule for rewriting it.
+# Any symbol that can rewrite as a terminal (or a string of
+# terminals, like "chief of staff") is called a "preterminal."  Notice
+# that a preterminal is a special kind of nonterminal.
+
+# Past tense (Past Simple) - intransitive verbs
+1   Vpast_intrans   sighed
+1   Vpast_intrans   ate
+1   Vpast_intrans   worked
+3   Vpast_intrans   laughed #NEW
+3   Vpast_intrans   smiled  #NEW
+
+# Past tense (Past Simple) - transitive verbs
+1   Vpast_trans ate
+1	Vpast_trans wanted
+1	Vpast_trans kissed
+1   Vpast_trans understood
+1   Vpast_trans pickled
+1   Vpast_trans perplexed
+2   Vpast_trans hugged  #NEW
+2   Vpast_trans bought  #NEW
+
+# Past tense (Past Simple) - verbs followed by preposition
+# added kissed and sighed
+1   Vpast_prep  worked
+1   Vpast_prep  ate
+1   Vpast_prep  sighed
+3   Vpast_prep  played  #NEW
+
+# Past tense (Past Simple) - verbs followed by 'that'
+1   Vpast_that  thought
+1   Vpast_that  understood
+
+# Past tense (Past Simple) - verb that needs to be followed by one object and the verb's cause
+1   Vpast_np_that perplexed
+
+# Present tense (Present Progressive)
+1   Vpresent    eating
+1   Vpresent    hugging
+1   Vpresent    kissing
+
+# Base verbs form -  transitive verbs
+1   Vbase_trans eat
+1   Vbase_trans want
+1   Vbase_trans kiss
+1   Vbase_trans understand
+1   Vbase_trans pickle
+1   Vbase_trans perplex
+2   Vbase_trans hug #NEW
+2   Vbase_trans buy #NEW
+1   Vbase_trans choose  #NEW-NEW
+
+# Base verbs form -  verbs followed by preposition  (plural form in present simple)
+1   Vbase_prep  work
+1   Vbase_prep  eat
+1   Vbase_prep  sigh
+3   Vbase_prep  play    #NEW
+
+# Base verbs form - verbs followed by 'that'    (plural form in present simple)
+1   Vbase_that  think
+1   Vbase_that  understand
+
+# Base verbs form - intransitive verbs  (plural form in present simple)
+1   Vbase_intrans sigh
+1   Vbase_intrans eat
+3   Vbase_intrans work
+1   Vbase_intrans laugh #NEW
+1   Vbase_intrans smile #NEW
+
+# Base verbs form - verb that needs to be followed by one object and the verb's cause   (plural form in present simple)
+1   Vbase_np_that    perplex
+
+# Present tense (Present Simple) -  transitive verbs    (singular)
+1   Vpres_trans_sg  eats
+1   Vpres_trans_sg  wants
+1   Vpres_trans_sg  kisses
+1   Vpres_trans_sg  understands
+1   Vpres_trans_sg  pickles
+1   Vpres_trans_sg  perplexes
+2   Vpres_trans_sg  hugs    #NEW
+2   Vpres_trans_sg  buys    #NEW
+1   Vpres_trans_sg  chooses #NEW-NEW
+
+# Present tense (Present Simple) - verbs followed by preposition    (singular)
+1   Vpres_prep_sg   works
+1   Vpres_prep_sg   eats
+1   Vpres_prep_sg   sighs
+3   Vpres_prep_sg   plays   #NEW
+
+# Present tense (Present Simple) - verbs followed by 'that' (singular)
+1   Vpres_that_sg   thinks
+1   Vpres_that_sg   understands
+
+# Present tense (Present Simple) -  intransitive verbs  (singular)
+1   Vpres_intrans_sg    sighs
+1   Vpres_intrans_sg    works
+1   Vpres_intrans_sg    eats
+1   Vpres_intrans_sg    laughs  #NEW
+1   Vpres_intrans_sg    smiles  #NEW
+
+# Present tense (Present Simple) - verb that needs to be followed by one object and the verb's cause    (singular)
+1   Vpres_np_that_sg  perplexes
+
+1	Det	the
+1	Det	a
+1	Det	every
+
+1   Det_plu the
+1   Det_plu these
+1   Det_plu those
+1   Det_plu all
+1   Det_plu some
+
+1   Nnp sally
+5   Nnp ross        #NEW
+5   Nnp chandler    #NEW
+5   Nnp rachel      #NEW
+5   Nnp monica      #NEW
+5   Nnp joey        #NEW
+5   Nnp phoebe      #NEW
+
+1   Nnp_places  london
+1   Nnp_places  paris
+1   Nnp_places  italy
+1   Nnp_places  spain
+1   Nnp_places  central park
+
+1   Noun_places library
+1   Noun_places grocery
+1   Noun_places school
+1   Noun_places playground
+1   Noun_places beach
+
+1	Noun	president
+1	Noun	sandwich
+1	Noun	pickle
+1	Noun	chief of staff
+1	Noun	floor
+1   Noun    proposal
+1   Noun    desk
+1   Noun    doctor  #NEW
+1   Noun    pizza   #NEW
+
+1   Noun_plu    citizens
+1   Noun_plu    students
+1   Noun_plu    teachers
+1   Noun_plu    pickles
+1   Noun_plu    presidents
+1   Noun_plu    sandwiches
+1   Noun_plu    lecturers
+1   Noun_plu    doctors
+
+1   Adv very
+
+1	Adj fine
+1	Adj	delicious
+1	Adj	perplexed
+1	Adj	pickled
+1   Adj lazy
+2   Adj funny   #NEW
+2   Adj loyal   #NEW
+2   Adj cynical #NEW
+
+1	Prep	with
+1	Prep	on
+1	Prep	under
+1	Prep	in
+
+1   SubC    that
+
+1   Prp it
+
+1   Vbz is
+
+1   Vbp are
+
+1   Conj    and
+
+1   Aux did
+1   Aux will

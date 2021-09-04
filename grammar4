@@ -1,0 +1,287 @@
+# b d
+
+# Symbols in the grammar are case-sensitive.
+#
+# This grammar uses a convention that
+#    - terminals are lowercase          (president)
+#    - preterminals are capitalized     (Noun)
+#    - other nonterminals are all-caps  (NP)
+#
+# This convention just makes grammars more readable to humans.  Thus:
+#
+#    - When *you* are writing grammars, you should
+#      follow this convention unless you have a good reason not to.
+#
+#    - But the  *program* should still work with grammars that don't
+#      follow this convention.  So how can the program reliably tell
+#      the difference between terminal and nonterminal symbols?  If
+#      there is at least one rule for rewriting a symbol, then that
+#      symbol is a nonterminal and should be rewritten.
+#######################
+
+# Rules for creating full sentences.
+
+1	ROOT	S .
+1	ROOT	S !
+1	ROOT	is it true that S ?     # mixing terminals and nonterminals is ok.
+
+# The basic grammar rules.  Here's what the abbreviations stand for:
+#    S  = sentence
+#    NP = noun phrase
+#    VP = verb phrase
+#    PP = prepositional phrase
+#    Det = determiner (sometimes called "article")
+#    Prep = preposition
+#    Adj = adjective
+#    Nnp = proper noun
+#    Conj = conjunction
+#    Adv = adverb
+#    Prp = personal pronoun
+#    ADVP = adverbial phrase
+#    Vbz = verb 3rd person singular present form
+#    SubC = subordinating conjunction
+
+
+#################
+#  Basic rules  #
+#################
+
+1   S   S_PAST          # to generate sentences in Past Simple tense
+1   S   S_PRESENT       # to generate sentences in Present Progressive tense
+
+1   S_PAST  NP VP_PAST
+1   S_PRESENT   NP VP_PRES
+
+1   VP_PAST Vpast_trans NP
+5   NP  Det Noun
+
+0.3 NP  Det Noun PP     # changed from NP -> NP PP to NP -> Det Noun PP to prevent "Sally with the pickle"
+0.2 PP  Prep NP
+
+1   Noun    Adj Noun
+
+
+####################
+#  grammar2 rules  #
+####################
+
+5   NP  Nnp         # to support sent (a) - "Sally ate a sandwich ."
+
+0.3 NP  NP Conj NP                                  # to support sent (b) - "Sally and the president"
+0.3 Vpast_trans Vpast_trans Conj Vpast_trans       # to support sent (b) - "wanted and ate"
+
+0.1 S   S Conj S        # a conjunction can also connect sentences
+
+1   VP_PAST Vpast_intrans       # to support sent (c) - "the president sighed ."
+
+1   SBAR    SubC S_PAST
+0.5 VP_PAST Vpast_that SBAR     # to support sent (d) - "the president thought that a sandwich sighed ."
+
+0.4 S_PAST  Prp Vpast_np_that NP SBAR   # to support sent (e) - "it perplexed the president that a sandwich ate Sally ."
+
+1   ADVP    Adv
+1   ADVP    Adv ADVP        # adverbial phrase
+1   ADJP    Adj
+1   ADJP    ADVP Adj        # adjectival phrase
+
+1   NP  Det ADJP Noun           # to support sent (f) - "the very very very perplexed president ate a sandwich ."
+0.2 NP  Det ADJP Noun PP        # extra - to support "the very very very perplexed sandwich on the desk ... "
+
+1   VP_PAST Vpast_prep PP       # to support sent (g) - "the president worked on every proposal on the desk ."
+
+1   VP_PRES Vbz ADJP                # to support sent (h) - "Sally is lazy ."
+1   VP_PRES Vbz ADJP Conj ADJP      # extra - to support "Sally is very lazy and very fine ."
+
+1   VP_PRES Vbz Vpresent NP         # to support sent (i) - "Sally is eating a sandwich ."
+
+1   VP_PRES Vbz NP          # extra - to support "sally is a sandwich ."
+1   VP_PAST Vbz NP          # to support sent (j) - "the president thought that sally is a sandwich ."
+
+
+####################
+#  grammar4 rules  #
+####################
+
+# --------------------- Yes-No Questions Rules --------------------- #
+
+1   ROOT    YNQ ?       # generating yes/no questions
+
+3   YNQ YNQ_DID_WILL        # generating questions in Past Simple and Future Simple tenses
+1   YNQ YNQ_IS              # generating questions in Present Progressive tense
+
+3   YNQ_DID_WILL    Aux NP VPQ
+0.3 YNQ_DID_WILL    Aux Prp Vbase_np_that NP SBAR     # "did it perplex the president that ... ?"
+
+1   YNQ_IS  Vbz NP NP                   # "is Sally a sandwich ?"
+1   YNQ_IS  Vbz NP ADJP                 # "is Sally (very) funny ?"
+0.3 YNQ_IS  Vbz NP ADJP Conj ADJP       # "is Sally (very) funny and (very) cynical ?"
+1   YNQ_IS  Vbz NP Vpresent NP          # "is Sally eating the sandwich ?"
+
+1   VPQ Vbase_trans NP      # "did Sally ___ (and ___) the sandwich ?"  # "where did Sally ___ (and ___) the sandwich ?"
+1   VPQ Vbase_prep PP       # "did Sally ___ on the desk ?"             # "where did Sally ___  on the desk ?"
+0.5 VPQ Vbase_that SBAR     # "did Sally ___ that ... ?"                # "where did Sally ___ that ... ?"
+3   VPQ Vbase_intrans       # "did Sally ___ ?"                         # "where did Sally ___ ?"
+
+1   Vbase_trans Vbase_trans Conj Vbase_trans
+
+# -------------------- WH-word Questions Rules -------------------- #
+
+1   ROOT    WHQ ?       # generating WH questions
+
+# 'Where' questions
+5   WHQ where YNQ_DID_WILL
+1   WHQ where Vbz NP                # "where is phoebe ?"
+1   WHQ where Vbz NP Vpresent NP    # "where is phoebe eating the sandwich ?"
+
+# 'What' questions
+4   WHQ what Aux NP VPQ1
+1   WHQ what Vbz NP Vpresent    # "what is chandler eating ?"
+1   WHQ what Vbz NP             # "what is a sandwich ?"
+
+# 'Who' questions
+3   WHQ who Aux NP Vbase_prep with      # "who did the president ___ with ?"
+3   WHQ who Aux NP Vbase_trans          # "who did the president ___ ?"
+3   WHQ who VPQ2
+1   WHQ who Vbz Vpresent NP             # "who is eating a sandwich ?"
+1   WHQ who Vbz ADJP                    # "who is (very) cynical ?"
+1   WHQ who Vbz ADJP Conj ADJP          # "who is (very) funny and (very) cynical ?"
+1   WHQ who Vbz NP
+
+1   VPQ1    Vbase_trans NP with                 # "what did Sally ___ the sandwich with ?"
+1   VPQ1    Vbase_trans                         # "what did Sally ___ ?"
+1   VPQ1    Vbase_that                          # "what did the president think/understand ?"
+1   VPQ1    Vbase_that SubC NP Vpast_trans      # "what did the president ___ that Sally ___ ?"
+1   VPQ1    Vbase_prep Prep                     # "what did the president ___ on ?"
+
+1   VPQ2    Vpast_trans NP      # "who ___ (and ___) the sandwich ?"
+1   VPQ2    Vpast_prep PP       # "who ___ on the desk ?"
+1   VPQ2    Vpast_that SBAR     # "who thought/understood that ... ?"
+1   VPQ2    Vpast_intrans       # "who ___ ?"
+
+
+# *=**=*=*=*=*=*=* Extended vocabulary for grammar4 *=**=*=*=*=*=*=* #
+
+1   Aux did
+1   Aux will
+
+# Present tense (Present Simple) -  transitive verbs  * Plural *
+1   Vbase_trans eat
+1   Vbase_trans want
+1   Vbase_trans kiss
+1   Vbase_trans understand
+1   Vbase_trans pickle
+1   Vbase_trans perplex
+2   Vbase_trans hug     #NEW
+2   Vbase_trans buy     #NEW
+
+# Present tense (Present Simple) - verbs followed by preposition  * Plural *
+1   Vbase_prep  work
+1   Vbase_prep  eat
+1   Vbase_prep  sigh
+3   Vbase_prep  play    #NEW
+
+# Present tense (Present Simple) - verbs followed by 'that'  * Plural *
+1   Vbase_that  think
+1   Vbase_that  understand
+
+# Present tense (Present Simple) -  intransitive verbs  * Plural *
+1   Vbase_intrans   sigh
+1   Vbase_intrans   eat
+3   Vbase_intrans   work
+1   Vbase_intrans   laugh     #NEW
+1   Vbase_intrans   smile     #NEW
+
+# Present tense (Present Simple) - verb that needs to be followed by one object and the verb's cause  * Plural *
+1   Vbase_np_that   perplex
+
+
+#########################
+#  Original Vocabulary  #
+#########################
+
+# Vocabulary.  Your program can see that "ate" is a terminal
+# symbol because there exists no rule for rewriting it.
+# Any symbol that can rewrite as a terminal (or a string of
+# terminals, like "chief of staff") is called a "preterminal."  Notice
+# that a preterminal is a special kind of nonterminal.
+
+# Past tense (Past Simple) - intransitive verbs
+1   Vpast_intrans   sighed
+1   Vpast_intrans   ate
+1   Vpast_intrans   worked
+3   Vpast_intrans   laughed     #NEW
+3   Vpast_intrans   smiled      #NEW
+
+# Past tense (Past Simple) - transitive verbs
+1   Vpast_trans ate
+1	Vpast_trans wanted
+2	Vpast_trans kissed
+1   Vpast_trans understood
+1   Vpast_trans pickled
+1   Vpast_trans perplexed
+2   Vpast_trans hugged      #NEW
+2   Vpast_trans bought      #NEW
+
+# Past tense (Past Simple) - verbs followed by preposition
+1   Vpast_prep  worked
+1   Vpast_prep  ate
+1   Vpast_prep  sighed
+3   Vpast_prep  played      #NEW
+
+# Past tense (Past Simple) - verbs followed by 'that'
+2   Vpast_that  thought
+1   Vpast_that  understood
+
+# Past tense (Past Simple) - verb that needs to be followed by one object and the verb's cause
+1   Vpast_np_that perplexed
+
+# Present tense (Present Progressive)
+1   Vpresent    eating
+1   Vpresent    hugging
+1   Vpresent    kissing
+
+1	Det	the
+1	Det	a
+1	Det	every
+
+1   Nnp sally
+5   Nnp ross        #NEW
+5   Nnp chandler    #NEW
+5   Nnp rachel      #NEW
+5   Nnp monica      #NEW
+5   Nnp joey        #NEW
+5   Nnp phoebe      #NEW
+
+1	Noun	president
+1	Noun	sandwich
+1	Noun	pickle
+1	Noun	chief of staff
+1	Noun	floor
+1   Noun    proposal
+1   Noun    desk
+1   Noun    doctor  #NEW
+1   Noun    pizza   #NEW
+
+1   Adv very
+
+1	Adj	fine
+1	Adj	delicious
+1	Adj	perplexed
+1	Adj	pickled
+1   Adj lazy
+2   Adj funny       #NEW
+2   Adj loyal       #NEW
+2   Adj cynical     #NEW
+
+1	Prep	with
+1	Prep	on
+1	Prep	under
+1	Prep	in
+
+1   SubC    that
+
+1   Prp it
+
+1   Vbz is
+
+1   Conj    and
